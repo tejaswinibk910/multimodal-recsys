@@ -1,0 +1,39 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+
+# Data files (too large for git)
+data/raw/
+data/embeddings/*.npy
+data/embeddings/*.bin
+data/embeddings/*.pt
+data/embeddings/*.pkl
+data/processed/*.pkl
+
+# Keep folder structure but not large files
+!data/raw/.gitkeep
+!data/embeddings/.gitkeep
+!data/processed/.gitkeep
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Results
+experiments/results/*.json
