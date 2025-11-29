@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Stage Recommender Demo</title>
+    <title>RecoML - Neural Movie Recommendation Engine</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -12,198 +14,422 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #2a1f3a 100%);
             min-height: 100vh;
-            padding: 20px;
+            color: #fff;
+            position: relative;
+        }
+
+        /* Animated background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(102, 126, 234, 0.03) 2px,
+                    rgba(102, 126, 234, 0.03) 4px
+                );
+            pointer-events: none;
+            z-index: 0;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1600px;
             margin: 0 auto;
-            background: white;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header - Netflix inspired with cyberpunk accents */
+        .hero-header {
+            background: linear-gradient(135deg, rgba(10, 14, 39, 0.95), rgba(26, 31, 58, 0.95));
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(102, 126, 234, 0.3);
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 50px;
+            margin-bottom: 40px;
+            box-shadow: 
+                0 0 40px rgba(102, 126, 234, 0.2),
+                inset 0 0 30px rgba(102, 126, 234, 0.05);
+            position: relative;
             overflow: hidden;
         }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
+        .hero-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
         }
 
-        .header h1 {
-            font-size: 2.5em;
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(180deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #00ff88, #00ddff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .tagline {
+            font-size: 1.3em;
+            color: #00ddff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
             margin-bottom: 10px;
         }
 
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            padding: 30px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .stat-label {
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .content {
-            padding: 40px;
-        }
-
-        .search-section {
-            margin-bottom: 30px;
-        }
-
-        .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .search-box input {
-            flex: 1;
-            padding: 15px;
-            font-size: 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            transition: border-color 0.3s;
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .search-box button {
-            padding: 15px 30px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .search-box button:hover {
-            background: #764ba2;
-        }
-
-        .search-results {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .movie-card {
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .movie-card:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-        }
-
-        .movie-card.selected {
-            border-color: #667eea;
-            background: #f0f4ff;
-        }
-
-        .movie-title {
-    font-weight: bold;
-    margin-bottom: 5px;
-    word-wrap: break-word;      /* Add this */
-    overflow-wrap: break-word;  /* Add this */
-}
-
-        .movie-genres {
-            color: #666;
+        .status-bar {
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
             font-size: 0.9em;
-        }
-
-        .history-section {
-            margin-bottom: 30px;
-        }
-
-        .history-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
             margin-top: 15px;
         }
 
-        .history-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 15px;
-            background: #667eea;
-            color: white;
-            border-radius: 20px;
+        .blinking {
+            animation: blink 1s infinite;
         }
 
-        .history-item button {
-            background: rgba(255, 255, 255, 0.3);
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        /* Stats - Glassmorphism cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        .poster-placeholder img,
+        .rec-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+                .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #00ff88, #00ddff);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: #00ff88;
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.3);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #00ddff;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        /* Sections */
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .section-icon {
+            font-size: 2em;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5));
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Search */
+        .search-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 18px 25px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-btn {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             border: none;
+            border-radius: 12px;
             color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
             cursor: pointer;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        /* Movie Grid with Posters */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .movie-poster-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .movie-poster-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            border-color: #00ff88;
+            box-shadow: 0 15px 40px rgba(0, 255, 136, 0.4);
+        }
+
+        .movie-poster-card.selected {
+            border-color: #00ddff;
+            box-shadow: 0 0 30px rgba(0, 221, 255, 0.6);
+        }
+
+        .poster-placeholder {
+            width: 100%;
+            aspect-ratio: 2/3;
+            background: linear-gradient(135deg, #1a1f3a, #2a1f3a);
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 3em;
+            color: rgba(255, 255, 255, 0.3);
         }
 
-        .controls {
+        .movie-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .movie-info {
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .movie-info-title {
+            font-weight: 600;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            color: #fff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .movie-info-genres {
+            font-size: 0.75em;
+            color: #00ddff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* History Chips */
+        .history-chips {
             display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
             flex-wrap: wrap;
+            gap: 12px;
+            min-height: 80px;
         }
 
-        .control-group {
+        .chip {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(0, 255, 136, 0.3));
+            border: 1px solid #00ff88;
+            padding: 12px 20px;
+            border-radius: 25px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            color: #fff;
+            font-weight: 500;
+            animation: chipPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2);
         }
 
-        .control-group label {
+        @keyframes chipPop {
+            0% {
+                opacity: 0;
+                transform: scale(0) rotate(-180deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .chip button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: #fff;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .chip button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: rotate(90deg);
+        }
+
+        /* Controls */
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .control-label {
             font-weight: 500;
+            color: #fff;
         }
 
         .toggle {
             position: relative;
-            width: 50px;
-            height: 24px;
+            width: 55px;
+            height: 28px;
         }
 
         .toggle input {
@@ -212,139 +438,238 @@
             height: 0;
         }
 
-        .slider {
+        .toggle-slider {
             position: absolute;
             cursor: pointer;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #ccc;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
             transition: 0.4s;
-            border-radius: 24px;
+            border-radius: 28px;
         }
 
-        .slider:before {
+        .toggle-slider:before {
             position: absolute;
             content: "";
-            height: 16px;
-            width: 16px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
             transition: 0.4s;
             border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
 
-        input:checked + .slider {
-            background-color: #667eea;
+        input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #667eea, #00ff88);
+            border-color: #00ff88;
         }
 
-        input:checked + .slider:before {
-            transform: translateX(26px);
+        input:checked + .toggle-slider:before {
+            transform: translateX(27px);
         }
 
-        .recommend-btn {
+        /* Action Button */
+        .action-btn {
             width: 100%;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            border-radius: 15px;
             color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4em;
+            font-weight: 900;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
         }
 
-        .recommend-btn:hover {
-            transform: scale(1.02);
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
         }
 
-        .recommend-btn:disabled {
-            opacity: 0.5;
+        .action-btn:hover::before {
+            width: 500px;
+            height: 500px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.4;
             cursor: not-allowed;
+            transform: none;
         }
 
-        .recommendations {
-            margin-top: 30px;
+        /* Recommendations Grid */
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+            padding: 10px;
         }
 
-.recommendation-card {
-    padding: 20px;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    overflow: visible;  /* Add this */
-}
-        .rec-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 10px;
+        .rec-poster-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+            animation: fadeIn 0.5s ease-out;
+            position: relative;
         }
 
-        .rec-rank {
-            background: #667eea;
-            color: white;
-            width: 30px;
-            height: 30px;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .rec-poster-card:hover {
+            transform: translateY(-10px);
+            border-color: #00ff88;
+            box-shadow: 0 15px 50px rgba(0, 255, 136, 0.4);
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea, #00ff88);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3em;
+            font-weight: 900;
+            color: white;
+            z-index: 2;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
 
-        .rec-score {
-            background: #f0f4ff;
-            color: #667eea;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
+        .score-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ff88;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            color: #00ff88;
+            z-index: 2;
+            font-family: 'Courier New', monospace;
+        }
+
+        .rec-poster {
+            width: 100%;
+            aspect-ratio: 2/3;
+            background: linear-gradient(135deg, #1a1f3a, #2a1f3a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .rec-details {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
         }
 
         .rec-title {
-    font-size: 1.2em;
-    font-weight: bold;
-    margin: 10px 0;
-    word-wrap: break-word;      /* Add this */
-    overflow-wrap: break-word;  /* Add this */
-}
+            font-weight: 700;
+            font-size: 1em;
+            margin-bottom: 8px;
+            color: #fff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
 
         .rec-genres {
-            color: #666;
+            font-size: 0.8em;
+            color: #00ddff;
             margin-bottom: 10px;
         }
 
-        .explanation {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 10px;
+        .rec-explanation {
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 3px solid #00ff88;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.75em;
+            color: rgba(255, 255, 255, 0.9);
             font-style: italic;
-            color: #555;
+            margin-top: 10px;
         }
 
-        .ai-explanation {
-            background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%);
-            border-left: 4px solid #667eea;
-        }
-
+        /* Loading */
         .loading {
             text-align: center;
-            padding: 40px;
-            color: #667eea;
+            padding: 60px;
+            color: #00ff88;
+        }
+
+        .spinner-container {
+            width: 60px;
+            height: 60px;
+            margin: 20px auto;
+            position: relative;
         }
 
         .spinner {
-            border: 4px solid #f3f3f3;
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(102, 126, 234, 0.2);
             border-top: 4px solid #667eea;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
+        }
+
+        .spinner::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(0, 255, 136, 0.2);
+            border-top: 3px solid #00ff88;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: spin 0.7s linear infinite reverse;
         }
 
         @keyframes spin {
@@ -352,109 +677,143 @@
             100% { transform: rotate(360deg); }
         }
 
-        h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #999;
+            color: rgba(255, 255, 255, 0.5);
         }
 
-        .empty-state-icon {
+        .empty-icon {
             font-size: 4em;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.3));
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #00ff88);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #00ff88, #00ddff);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🎬 Multi-Stage Recommender</h1>
-            <p>FAISS Retrieval + SASRec Sequential + Diversity Re-ranking</p>
+        <!-- Hero Header -->
+        <div class="hero-header">
+            <div class="hero-content">
+                <div class="logo">⚡ RecoML</div>
+                <div class="tagline">Neural Multi-Stage Recommendation Engine</div>
+                <div class="status-bar">
+                    [SYSTEM ACTIVE] Transformer Pipeline Ready<span class="blinking">_</span>
+                </div>
+            </div>
         </div>
 
-        <div class="stats">
-            <div class="stat">
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
                 <div class="stat-value">993</div>
-                <div class="stat-label">Movies</div>
+                <div class="stat-label">Movies Indexed</div>
             </div>
-            <div class="stat">
+            <div class="stat-card">
                 <div class="stat-value">+467%</div>
                 <div class="stat-label">CTR Improvement</div>
             </div>
-            <div class="stat">
+            <div class="stat-card">
                 <div class="stat-value">7.0%</div>
-                <div class="stat-label">HR@10</div>
+                <div class="stat-label">Hit Rate@10</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">512D</div>
+                <div class="stat-label">Embedding Space</div>
             </div>
         </div>
 
-        <div class="content">
-            <!-- Search Section -->
-            <div class="search-section">
-                <h2>1. Search & Add Movies to Your History</h2>
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Search for movies (e.g., Toy Story, Pulp Fiction)...">
-                    <button onclick="searchMovies()">Search</button>
-                </div>
-                <div id="searchResults" class="search-results"></div>
+        <!-- Search Section -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-icon">🔍</div>
+                <div class="section-title">Discover Movies</div>
             </div>
-
-            <!-- User History -->
-            <div class="history-section">
-                <h2>2. Your Watch History</h2>
-                <div id="historyList" class="history-list">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📽️</div>
-                        <p>No movies in your history yet. Search and click to add!</p>
-                    </div>
-                </div>
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search for movies...">
+                <button class="search-btn" onclick="searchMovies()">Search</button>
             </div>
+            <div id="searchResults" class="movie-grid"></div>
+        </div>
 
-            <!-- Controls -->
-            <div class="controls">
-                <div class="control-group">
-                    <label>Sequential Model:</label>
-                    <label class="toggle">
-                        <input type="checkbox" id="useSequential" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="control-group">
-                    <label>Diversity Re-ranking:</label>
-                    <label class="toggle">
-                        <input type="checkbox" id="useDiversity">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="control-group">
-                    <label>With Explanations:</label>
-                    <label class="toggle">
-                        <input type="checkbox" id="withExplanations">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="control-group">
-                    <label>AI Explanations (Groq):</label>
-                    <label class="toggle">
-                        <input type="checkbox" id="useAI">
-                        <span class="slider"></span>
-                    </label>
+        <!-- Watch History -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-icon">📚</div>
+                <div class="section-title">Watch History</div>
+            </div>
+            <div id="historyList" class="history-chips">
+                <div class="empty-state">
+                    <div class="empty-icon">🎬</div>
+                    <p>Add movies to build your profile</p>
                 </div>
             </div>
+        </div>
 
-            <!-- Recommend Button -->
-            <button class="recommend-btn" id="recommendBtn" onclick="getRecommendations()" disabled>
-                Get Recommendations
-            </button>
-
-            <!-- Recommendations -->
-            <div class="recommendations" id="recommendations" style="display: none;">
-                <h2>Recommendations</h2>
-                <div id="recommendationsList"></div>
+        <!-- Controls -->
+        <div class="controls">
+            <div class="control-item">
+                <span class="control-label">Sequential Model</span>
+                <label class="toggle">
+                    <input type="checkbox" id="useSequential" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
+            <div class="control-item">
+                <span class="control-label">Diversity Boost</span>
+                <label class="toggle">
+                    <input type="checkbox" id="useDiversity">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="control-item">
+                <span class="control-label">Explanations</span>
+                <label class="toggle">
+                    <input type="checkbox" id="withExplanations">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="control-item">
+                <span class="control-label">AI Insights</span>
+                <label class="toggle">
+                    <input type="checkbox" id="useAI">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Action Button -->
+        <button class="action-btn" id="recommendBtn" onclick="getRecommendations()" disabled>
+            Generate Recommendations
+        </button>
+
+        <!-- Recommendations -->
+        <div class="section" id="recommendations" style="display: none;">
+            <div class="section-header">
+                <div class="section-icon">✨</div>
+                <div class="section-title">Your Recommendations</div>
+            </div>
+            <div id="recommendationsList" class="rec-grid"></div>
         </div>
     </div>
 
@@ -462,30 +821,38 @@
         let userHistory = [];
         const API_BASE = 'http://localhost:8000';
 
+        // TMDB poster base URL (using placeholder for now)
+        const POSTER_BASE = 'https://image.tmdb.org/t/p/w300';
+
         async function searchMovies() {
             const query = document.getElementById('searchInput').value;
             if (!query) return;
 
-            const response = await fetch(`${API_BASE}/search?query=${encodeURIComponent(query)}&limit=20`);
+            const response = await fetch(`${API_BASE}/search?query=${encodeURIComponent(query)}&limit=24`);
             const data = await response.json();
 
             const resultsDiv = document.getElementById('searchResults');
             if (data.results.length === 0) {
-                resultsDiv.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">No movies found</p>';
+                resultsDiv.innerHTML = '<p style="text-align:center; color:rgba(255,255,255,0.5); padding:20px; grid-column: 1/-1;">No movies found</p>';
                 return;
             }
 
             resultsDiv.innerHTML = data.results.map(movie => `
-                <div class="movie-card" onclick="addToHistory(${movie.movieId}, '${movie.title.replace(/'/g, "\\'")}', '${movie.genres}')">
-                    <div class="movie-title">${movie.title}</div>
-                    <div class="movie-genres">${movie.genres}</div>
+                <div class="movie-poster-card" onclick="addToHistory(${movie.movieId}, '${movie.title.replace(/'/g, "\\'")}', '${movie.genres}')">
+                    <img src="${API_BASE}/poster/${movie.movieId}" 
+                        class="poster-placeholder"
+                        onerror="this.onerror=null; this.outerHTML='<div class=\\'poster-placeholder\\'>🎬</div>';"
+                        alt="${movie.title}">
+                    <div class="movie-info">
+                        <div class="movie-info-title">${movie.title}</div>
+                        <div class="movie-info-genres">${movie.genres}</div>
+                    </div>
                 </div>
             `).join('');
         }
 
         function addToHistory(movieId, title, genres) {
             if (userHistory.some(m => m.movieId === movieId)) return;
-
             userHistory.push({ movieId, title, genres });
             updateHistoryDisplay();
             updateRecommendButton();
@@ -502,15 +869,15 @@
             if (userHistory.length === 0) {
                 historyDiv.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">📽️</div>
-                        <p>No movies in your history yet. Search and click to add!</p>
+                        <div class="empty-icon">🎬</div>
+                        <p>Add movies to build your profile</p>
                     </div>
                 `;
                 return;
             }
 
             historyDiv.innerHTML = userHistory.map(movie => `
-                <div class="history-item">
+                <div class="chip">
                     <span>${movie.title}</span>
                     <button onclick="removeFromHistory(${movie.movieId})">×</button>
                 </div>
@@ -521,67 +888,82 @@
             document.getElementById('recommendBtn').disabled = userHistory.length === 0;
         }
 
-        async function getRecommendations() {
-            const useSequential = document.getElementById('useSequential').checked;
-            const useDiversity = document.getElementById('useDiversity').checked;
-            const withExplanations = document.getElementById('withExplanations').checked;
-            const useAI = document.getElementById('useAI').checked;
+   async function getRecommendations() {
+    const useSequential = document.getElementById('useSequential').checked;
+    const useDiversity = document.getElementById('useDiversity').checked;
+    const withExplanations = document.getElementById('withExplanations').checked;
+    const useAI = document.getElementById('useAI').checked;
 
-            const recommendationsDiv = document.getElementById('recommendations');
-            const listDiv = document.getElementById('recommendationsList');
+    const recommendationsDiv = document.getElementById('recommendations');
+    const listDiv = document.getElementById('recommendationsList');
 
-            recommendationsDiv.style.display = 'block';
-            listDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Generating recommendations...</p></div>';
+    recommendationsDiv.style.display = 'block';
+    listDiv.innerHTML = '<div class="loading" style="grid-column: 1/-1;"><div class="spinner-container"><div class="spinner"></div></div><p>Processing neural network...</p></div>';
 
-            let endpoint = '/recommend';
-            if (useAI) {
-                endpoint = '/recommend/llm?explanation_style=friendly';
-            } else if (withExplanations) {
-                endpoint = '/recommend/explained?explanation_level=simple';
-            }
+    let endpoint = '/recommend';
+    if (useAI) {
+        endpoint = '/recommend/llm?explanation_style=friendly';
+    } else if (withExplanations) {
+        endpoint = '/recommend/explained?explanation_level=simple';
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_history: userHistory.map(m => m.movieId),
+                top_k: 12,
+                use_sequential: useSequential,
+                use_diversity: useDiversity
+            })
+        });
+
+        const data = await response.json();
+        
+        // Check if recommendations exist
+        if (!data.recommendations || !Array.isArray(data.recommendations)) {
+            throw new Error('Invalid response format');
+        }
+
+        listDiv.innerHTML = data.recommendations.map((rec, idx) => {
+            const scoreValue = parseFloat(rec.score);
+            const displayScore = isNaN(scoreValue) ? 0 : scoreValue;
             
-            try {
-                const response = await fetch(`${API_BASE}${endpoint}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_history: userHistory.map(m => m.movieId),
-                        top_k: 10,
-                        use_sequential: useSequential,
-                        use_diversity: useDiversity
-                    })
-                });
-
-                const data = await response.json();
-
-                listDiv.innerHTML = data.recommendations.map((rec, idx) => `
-                    <div class="recommendation-card">
-                        <div class="rec-header">
-                            <div class="rec-rank">${idx + 1}</div>
-                            <div class="rec-score">Score: ${rec.score.toFixed(3)}</div>
-                        </div>
+            return `
+                <div class="rec-poster-card">
+                    <div class="rank-badge">${idx + 1}</div>
+                    <div class="score-badge">${displayScore.toFixed(3)}</div>
+                    <img src="${API_BASE}/poster/${rec.movieId}" 
+                         class="rec-poster"
+                         onerror="this.onerror=null; this.outerHTML='<div class=\\'rec-poster\\'>🎬</div>';"
+                         alt="${rec.title}">
+                    <div class="rec-details">
                         <div class="rec-title">${rec.title}</div>
                         <div class="rec-genres">${rec.genres}</div>
                         ${rec.llm_explanation ? `
-                            <div class="explanation ai-explanation">
+                            <div class="rec-explanation">
                                 🤖 ${rec.llm_explanation}
                             </div>
                         ` : rec.explanation ? `
-                            <div class="explanation">
-                                💡 ${rec.explanation.explanation}
+                            <div class="rec-explanation">
+                                💡 ${rec.explanation.explanation || rec.explanation}
                             </div>
                         ` : ''}
                     </div>
-                `).join('');
-            } catch (error) {
-                listDiv.innerHTML = `<div style="text-align:center; color:#e74c3c; padding:40px;">
-                    <p>Error: ${error.message}</p>
-                    ${useAI ? '<p style="margin-top:10px; font-size:0.9em;">Make sure GROQ_API_KEY is set</p>' : ''}
-                </div>`;
-            }
-        }
+                </div>
+            `;
+        }).join('');
 
-        // Allow Enter key in search
+        recommendationsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (error) {
+        console.error('Error details:', error);
+        listDiv.innerHTML = `<div style="text-align:center; color:#ff6b6b; padding:40px; grid-column: 1/-1;">
+            <p>⚠️ Error: ${error.message}</p>
+            <p style="font-size:0.9em; margin-top:10px;">Check console for details</p>
+        </div>`;
+    }
+}
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') searchMovies();
         });
