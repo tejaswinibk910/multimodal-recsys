@@ -8,6 +8,7 @@ from retrieval.faiss_query import FAISSRetriever
 from sequential.sasrec import SASRec
 from ranker.diversity_reranker import DiversityReranker
 from ranker.explainer import RecommendationExplainer
+from ranker.llm_explainer import LLMExplainer
 
 
 class RecommendationPipeline:
@@ -60,6 +61,17 @@ class RecommendationPipeline:
             movie_ids, 
             self.retriever
         )
+        print("Initializing LLM explainer...")
+        try:
+            self.llm_explainer = LLMExplainer(self.movies)
+            if self.llm_explainer.client:
+                print("LLM explainer ready!")
+            else:
+                print("LLM explainer initialized (no API key - feature disabled)")
+        except Exception as e:
+            print(f"LLM explainer unavailable: {e}")
+            self.llm_explainer = None
+
         
         print("Pipeline ready!")
     
@@ -240,3 +252,21 @@ class RecommendationPipeline:
             explanation += f"    - {sim['movie']} (similarity: {sim['similarity']:.3f})\n"
         
         return explanation
+    
+    def recommend_with_llm_explanations(self, user_history, n_candidates=100, top_k=10,
+                                    use_sequential=True, use_diversity=False,
+                                    explanation_style='friendly'):
+    
+        if not self.llm_explainer or not self.llm_explainer.client:
+            raise ValueError("LLM explainer not available (missing API key)")
+        
+        recommendations = self.recommend(
+            user_history, n_candidates, top_k, 
+            use_sequential, use_diversity
+        )
+        
+        explained_recs = self.llm_explainer.explain_batch(
+            recommendations, user_history, style=explanation_style
+        )
+        
+        return explained_recs
